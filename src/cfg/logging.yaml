@@ -1,0 +1,43 @@
+version: 1
+disable_existing_loggers: true
+
+formatters:
+  standard:
+    format: "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s"
+    datefmt: '%H:%M:%S'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: standard
+    stream: ext://sys.stdout
+
+  file:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: WARNING
+    formatter: standard
+    filename: './logs/system.log'
+    when: 'midnight'
+    backupCount: 30
+    encoding: utf8
+
+root:
+  level: ERROR
+  handlers: [console]
+
+loggers:
+  __main__:
+    level: INFO
+    handlers: [console] 
+    propagate: no
+
+  src.weather_api:
+    level: INFO
+    handlers: [console, file]
+    propagate: no
+
+  src.utils:
+    level: INFO
+    handlers: [console, file]
+    propagate: no
