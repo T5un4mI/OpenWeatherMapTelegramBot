@@ -1,12 +1,14 @@
 from logging import getLogger
 
+from os import environ
+
 from requests import get, exceptions
 
 from asyncio import get_event_loop
 
 from time import strftime, gmtime
 
-from src import config, weather_emodji
+from src import weather_emodji
 
 
 logger = getLogger(__name__)
@@ -20,7 +22,7 @@ async def get_current_weather(city: str):
         response = None
         payload = {'q': '{}'.format(city),
                    'units': 'metric',
-                   'appid': config['open_weather']['api_key']}
+                   'appid': environ.get('WEATHER_API_KEY')}
         try:
             response = get('https://api.openweathermap.org/data/2.5/weather?',
                            params=payload)
@@ -51,46 +53,32 @@ def data_extraction(data):
     if weather:
         icon = ''.join(filter(str.isdigit, weather[0].get('icon')))
         icon = weather_emodji.get(icon)
-        message = 'Description: {} {}\n'.format(weather[0].get('description'),
-                                                icon)
+        msg = 'Description: {} {}\n'.format(weather[0].get('description'),
+                                            icon)
 
-    message += 'Visability: {} meters\n'.format(data.get('visibility'))
-
-    main = data.get('main')
-    if main:
-        message += 'Temperature: {} °C\n'.format(main.get('temp'))
-        message += 'Feels like: {} °C\n'.format(main.get('feels_like'))
-        message += 'Min temperature: {} °C\n'.format(main.get('temp_min'))
-        message += 'Max temperature: {} °C\n'.format(main.get('temp_max'))
-        message += 'Pressure: {} hPa\n'.format(main.get('pressure'))
-        message += 'Pressure (sea): {} hPa\n'.format(main.get('sea_level'))
-        message += 'Pressure (ground) {} hPa\n'.format(main.get('grnd_level'))
-        message += 'Humidity: {} %\n'.format(main.get('humidity'))
-
-    wind = data.get('wind')
-    if wind:
-        message += 'Wind:\n'
-        message += '    Speed: {} meter/sec\n'.format(wind.get('speed'))
-        message += '    Direction: {} degrees\n'.format(wind.get('deg'))
-        message += '    Gust: {} meter/sec\n'.format(wind.get('gust'))
-
-    clouds = data.get('clouds')
-    if clouds:
-        message += 'Cloudiness: {} %\n'.format(clouds.get('all'))
-
-    rain = data.get('rain')
-    if rain:
-        message += 'Rain volume for the last 1 '\
-                   'hour: {} mm\n'.format(rain.get('1h'))
-        message += 'Rain volume for the last 3 '\
-                   'hours: {} mm\n'.format(rain.get('3h'))
-
-    snow = data.get('snow')
-    if snow:
-        message += 'Snow volume for the last 1 '\
-                   'hour: {} mm\n'.format(snow.get('1h'))
-        message += 'Snow volume for the last 3 '\
-                   'hours: {} mm\n'.format(snow.get('3h'))
+    msg += f'Visability: {data.get("visibility")} meters\n'\
+           f'Temperature: {data.get("main", {}).get("temp")} °C\n'\
+           f'Feels like: {data.get("main", {}).get("feels_like")} °C\n'\
+           f'Min temperature: {data.get("main", {}).get("temp_min")} °C\n'\
+           f'Max temperature: {data.get("main", {}).get("temp_max")} °C\n'\
+           f'Pressure: {data.get("main", {}).get("pressure")} hPa\n'\
+           f'Pressure (sea): {data.get("main", {}).get("sea_level")} hPa\n'\
+           f'Pressure (ground): {data.get("main", {}).get("grnd_level")}\
+            hPa\n'\
+           f'Humidity: {data.get("main", {}).get("humidity")} %\n'\
+           'Wind:\n'\
+           f'    Speed: {data.get("wind", {}).get("speed")} meter/sec\n'\
+           f'    Direction: {data.get("wind", {}).get("deg")} degrees\n'\
+           f'    Gust: {data.get("wind", {}).get("gust")} meter/sec\n'\
+           f'Cloudiness: {data.get("clouds", {}).get("all")} %\n'\
+           f'Rain volume for the last 1 hour: {data.get("rain", {}).get("1h")}\
+            mm\n'\
+           f'Rain volume for the last 3 hour: {data.get("rain", {}).get("3h")}\
+            mm\n'\
+           f'Snow volume for the last 1 hour: {data.get("snow", {}).get("1h")}\
+            mm\n'\
+           f'Snow volume for the last 3 hour: {data.get("snow", {}).get("3h")}\
+            mm\n'
 
     sys_ = data.get('sys')
     if sys_:
@@ -100,9 +88,9 @@ def data_extraction(data):
         if timezone and sunrise and sunset:
             sunrise = strftime("%H:%M:%S", gmtime(sunrise + timezone))
             sunset = strftime("%H:%M:%S", gmtime(sunset + timezone))
-        message += 'Sunrise: {} \n'.format(sunrise)
-        message += 'Sunset: {} \n'.format(sunset)
+        msg += 'Sunrise: {} \n'.format(sunrise)
+        msg += 'Sunset: {} \n'.format(sunset)
 
-    message = message.split('\n')
-    message = [str_ for str_ in message if 'None' not in str_]
-    return '\n'.join(message)
+    msg = msg.split('\n')
+    msg = [str_ for str_ in msg if 'None' not in str_]
+    return '\n'.join(msg)

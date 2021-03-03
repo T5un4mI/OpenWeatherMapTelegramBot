@@ -1,12 +1,14 @@
 from logging import getLogger
 
+from os import environ
+
 from contextlib import asynccontextmanager
 
 from asyncio import sleep
 
 from aioredis import create_redis_pool, ConnectionClosedError
 
-from src import config, bot
+from src import bot
 
 from src.weather import get_current_weather
 
@@ -17,8 +19,8 @@ logger = getLogger(__name__)
 @asynccontextmanager
 async def redis_connection():
     """Create and close connection for redis server."""
-    connection = await create_redis_pool((config['redis']['url'],
-                                          config['redis']['port']))
+    connection = await create_redis_pool((environ.get('REDIS_URL'),
+                                          environ.get('REDIS_PORT')))
     try:
         yield connection
     finally:
@@ -65,7 +67,7 @@ async def get_access_status():
                 status = True
             else:
                 value = await redis.get('api_restrict')
-                if value.decode() == config['open_weather']['minute_limit']:
+                if value.decode() == environ.get('MINUTE_LIMIT'):
                     status = False
                 else:
                     await redis.incr('api_restrict')

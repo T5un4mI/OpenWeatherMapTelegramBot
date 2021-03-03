@@ -1,0 +1,23 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-data:/data
+
+  weather-bot:
+    environment:
+      REDIS_URL: 'redis'
+      REDIS_PORT: 6379
+      WEATHER_API_KEY:
+      MINUTE_LIMIT:
+      TG_API_ID: 
+      TG_API_HASH:
+      TG_API_KEY:
+
+volumes:
+  redis-data:

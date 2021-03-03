@@ -2,7 +2,7 @@ from logging import getLogger
 
 from asyncio import exceptions, get_event_loop, gather
 
-from telethon import events, errors
+from telethon.sync import events, errors
 
 from aioredis import ConnectionClosedError
 

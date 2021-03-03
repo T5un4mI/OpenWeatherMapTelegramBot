@@ -27,7 +27,7 @@ root:
   handlers: [console]
 
 loggers:
-  __main__:
+  app:
     level: INFO
     handlers: [console] 
     propagate: no
